@@ -51,7 +51,7 @@
       </v-container>
     </v-main>
 
-    <v-footer app>
+    <v-footer app border>
       <v-row justify="center" no-gutters>
         <v-col class="text-center" cols="12">
           <strong>Сайт {{ new Date().getFullYear() }}</strong>
