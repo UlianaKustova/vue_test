@@ -6,7 +6,7 @@
         v-model="drawer"
         :rail="rail" 
         permanent@click="rail = false">
-    <v-list>
+        <v-list>
         <v-list-item
           prepend-avatar="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1Nrd655YtoWXW-IUp-GL1wAoLU7YLp4hBSA&s"
           title="Паничка Атаковна"
@@ -26,41 +26,35 @@
           @click="navigateTo(item.route)"
         ></v-list-item>
       </v-list>
-
-      <template v-slot:append>
-        <v-list-item
-          prepend-icon="mdi-cog"
-          title="Настройки"
-          value="settings"
-        ></v-list-item>
-      </template>
     </v-navigation-drawer>
 
-    <!-- Шапка сверху -->
+    <!-- шапка -->
     <v-app-bar flat>
       <v-app-bar-nav-icon @click="rail = !rail"></v-app-bar-nav-icon>
       <v-app-bar-title>Мой сайт</v-app-bar-title>
       <v-spacer></v-spacer>
       <v-btn icon>
-        <v-icon>mdi-bell</v-icon>
+        <v-icon>mdi-bell </v-icon>
+      </v-btn>
+      <v-btn icon>
+        <v-icon>mdi-cog</v-icon>
       </v-btn>
       <v-btn icon>
         <v-icon>mdi-account</v-icon>
       </v-btn>
     </v-app-bar>
 
-    <!-- Основной контент -->
+    <!-- тело -->
     <v-main>
       <v-container fluid>
         <router-view />
       </v-container>
     </v-main>
 
-    <!-- Подвал -->
     <v-footer app>
       <v-row justify="center" no-gutters>
         <v-col class="text-center" cols="12">
-          {{ new Date().getFullYear() }} — <strong>Сайт</strong>
+          <strong>Сайт {{ new Date().getFullYear() }}</strong>
         </v-col>
       </v-row>
     </v-footer>
@@ -78,9 +72,9 @@ const rail = ref(false)
 
 const menuItems = [
   { title: 'Главная', icon: 'mdi-home', value: 'home', route: '/' },
-  { title: 'Главная2', icon: 'mdi-information', value: 'about', route: '/about' },
-  { title: 'Главная3', icon: 'mdi-email', value: 'contacts', route: '/contacts' },
-  { title: 'Главная4', icon: 'mdi-file', value: 'docs', route: '/docs' },
+  { title: 'Главная2', icon: 'mdi-information', value: 'home2', route: '/2' },
+  { title: 'Главная3', icon: 'mdi-email', value: 'home3', route: '/3' },
+  { title: 'Главная4', icon: 'mdi-file', value: 'home4', route: '/4' },
 ]
 
 function navigateTo(route: string) {
