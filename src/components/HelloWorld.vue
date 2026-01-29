@@ -19,6 +19,7 @@
   padding: 40px 20px;
   width: 100%;
   max-width: 100%;
+  background-color: rgb(212, 212, 212);
 }
 
 .main-text {

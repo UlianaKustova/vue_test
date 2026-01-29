@@ -10,3 +10,10 @@
 
 <script setup lang="ts">
 </script>
+
+
+<style scoped>
+.pa-6 {
+  background-color: rgb(152, 176, 255);
+}
+</style>
