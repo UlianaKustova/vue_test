@@ -1,7 +1,7 @@
 <template>
   <div class="simple-page">
     <div class="main-text">
-      Здесь могла быть ваша реклама
+      Здесь тоже могла быть ваша реклама
     </div>
     <div class="sub-text">
       Просто текст ничего лишнего

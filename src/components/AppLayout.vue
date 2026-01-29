@@ -72,9 +72,8 @@ const rail = ref(false)
 
 const menuItems = [
   { title: 'Главная', icon: 'mdi-home', value: 'home', route: '/' },
-  { title: 'Главная2', icon: 'mdi-information', value: 'home2', route: '/2' },
-  { title: 'Главная3', icon: 'mdi-email', value: 'home3', route: '/3' },
-  { title: 'Главная4', icon: 'mdi-file', value: 'home4', route: '/4' },
+  { title: 'about', icon: 'mdi-information', value: 'about', route: '/about' },
+  { title: 'hello', icon: 'mdi-email', value: 'hello', route: '/hello' },
 ]
 
 function navigateTo(route: string) {
