@@ -105,7 +105,7 @@ async function fetchUserData() {
 
 const menuItems = [
   { title: 'Главная', icon: 'mdi-home', value: 'home', route: '/' },
-  { title: 'about', icon: 'mdi-information', value: 'about', route: '/about' },
+  { title: 'Проекты', icon: 'mdi-view-dashboard', value: 'Проекты', route: '/projects' },
   { title: 'hello', icon: 'mdi-email', value: 'hello', route: '/hello' },
 ]
 
@@ -113,3 +113,40 @@ function navigateTo(route: string) {
   router.push(route)
 }
 </script>
+
+
+
+<style scoped>
+
+/* Иконки в шапке */
+.v-btn.v-btn--icon {
+  color: rgba(0, 0, 0, 0.7) !important;
+  transition: all 0.3s ease !important;
+}
+
+.v-btn.v-btn--icon:hover {
+  color: #1a237e !important;
+  transform: translateY(-2px) !important;
+  background: #f0f4ff !important;
+}
+
+/* Иконка меню в шапке */
+.v-app-bar-nav-icon {
+  color: #1a237e !important;
+  transition: all 0.3s ease !important;
+}
+
+.v-app-bar-nav-icon:hover {
+  transform: rotate(90deg) !important;
+}
+
+/* Эффект для активного пункта меню */
+.v-list-item--active {
+  background: rgb(200, 209, 238) !important;
+}
+
+.v-list-item--active .v-list-item-title {
+  color: #1a237e !important;
+  font-weight: 600 !important;
+}
+</style>

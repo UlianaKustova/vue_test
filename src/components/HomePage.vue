@@ -13,6 +13,6 @@
 
 <style scoped>
 .pa-6 {
-  background-color: rgb(197, 255, 179);
+  background-color: rgb(190, 204, 250);
 }
 </style>
