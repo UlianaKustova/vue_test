@@ -9,8 +9,8 @@
          <v-list>
         <v-list-item
           prepend-avatar="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1Nrd655YtoWXW-IUp-GL1wAoLU7YLp4hBSA&s"
-          title="Паничка Атаковна"
-          subtitle="aaaa@post.com"
+          :title="user.fullName"
+          :subtitle="user.email"
         ></v-list-item>
       </v-list>
 
@@ -71,10 +71,10 @@ const router = useRouter()
 const drawer = ref(true)
 const rail = ref(false)
 
-// const user = ref({
-//   fullName: '',
-//   email: ''
-// })
+const user = ref({
+  fullName: '',
+  email: ''
+})
 const loading = ref(false)
 
 onMounted(async () => {
@@ -86,8 +86,15 @@ async function fetchUserData() {
   try {
     console.log('here1')
     const response = await api.get('/myself')
+    const userData = response.data
     console.log('here2')
-    console.log(response)
+
+    const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim()
+
+    user.value = {
+      fullName: fullName || '',
+      email: userData.email || 'Нет почты'
+    }
 
   } catch (error) {
     console.error('ОШИБКА загрузки данных пользователя:', error)

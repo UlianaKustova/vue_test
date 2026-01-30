@@ -15,4 +15,19 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      // Простой вариант
+      '/api': {
+        target: 'https://api.tracker.yandex.net',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/v3'),
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log(`[VITE PROXY] ${req.url} -> ${proxyReq.path}`)
+          })
+        }
+      }
+    }
+  }
 })
