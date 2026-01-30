@@ -86,7 +86,7 @@ async function fetchProjects() {
 
 function selectProject(project: Project) {
   console.log('Выбран проект:', project)
-  // Здесь потом будет открытие деталей проекта
+  // открытие деталей проекта
 }
 </script>
 
