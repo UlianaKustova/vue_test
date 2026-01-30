@@ -6,7 +6,7 @@
         v-model="drawer"
         :rail="rail" 
         permanent@click="rail = false">
-        <v-list>
+         <v-list>
         <v-list-item
           prepend-avatar="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1Nrd655YtoWXW-IUp-GL1wAoLU7YLp4hBSA&s"
           title="Паничка Атаковна"
@@ -63,12 +63,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '@/api'
 
 const router = useRouter()
 const drawer = ref(true)
 const rail = ref(false)
+
+// const user = ref({
+//   fullName: '',
+//   email: ''
+// })
+const loading = ref(false)
+
+onMounted(async () => {
+  await fetchUserData()
+})
+
+async function fetchUserData() {
+  loading.value = true
+  try {
+    console.log('here1')
+    const response = await api.get('/myself')
+    console.log('here2')
+    console.log(response)
+
+  } catch (error) {
+    console.error('ОШИБКА загрузки данных пользователя:', error)
+  } finally {
+    loading.value = false
+  }
+}
 
 const menuItems = [
   { title: 'Главная', icon: 'mdi-home', value: 'home', route: '/' },
