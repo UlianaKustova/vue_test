@@ -27,6 +27,19 @@
           @click="navigateTo(item.route)"
         ></v-list-item>
       </v-list>
+      <!-- Кнопка выхода прикреплена к низу -->
+      <div class="logout-container" style="background: rgba(255, 255, 255, 0);">
+        <v-list density="compact" nav>
+          <v-list-item
+            key="logout"
+            prepend-icon="mdi-logout"
+            title="Выход"
+            value="logout"
+            @click="handleLogout"
+            class="logout-item"
+          ></v-list-item>
+        </v-list>
+      </div>
     </v-navigation-drawer>
 
     <!-- шапка -->
@@ -67,6 +80,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api'
+import { logout } from '../router'
 
 const router = useRouter()
 const drawer = ref(true)
@@ -113,6 +127,11 @@ const menuItems = [
 function navigateTo(route: string) {
   router.push(route)
 }
+
+function handleLogout() {
+  logout()
+  router.push('/login')
+}
 </script>
 
 
@@ -153,5 +172,39 @@ function navigateTo(route: string) {
 .v-list-item--active .v-list-item-title {
   color: #1a237e !important;
   font-weight: 600 !important;
+}
+
+/* Контейнер для кнопки выхода внизу */
+.logout-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* Убираем разделитель над кнопкой выхода */
+.logout-container .v-divider {
+  display: none !important;
+}
+
+/* Основное меню должно занимать все доступное пространство */
+.main-menu {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Стиль для кнопки выхода - серая по умолчанию */
+.logout-item {
+  min-height: 41px !important;
+  color: rgba(0, 0, 0, 0.87) !important;
+  margin: 4px 8px !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+}
+
+/* При наведении */
+.logout-item:hover {
+  background: transparent !important;
 }
 </style>

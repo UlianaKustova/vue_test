@@ -6,7 +6,7 @@ import axios from 'axios'
 const api = axios.create({
   baseURL: '/api',
   headers: {
-    // 'Authorization': '',
+    'Authorization': 'OAuth ',
     'X-Cloud-Org-Id': '',
     'Content-Type': 'application/json',
     'Accept': 'application/json'
