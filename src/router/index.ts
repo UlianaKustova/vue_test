@@ -7,6 +7,12 @@ const routes = [
     component: () => import('../components/LoginPage.vue'),
     meta: { requiresAuth: false }
   },
+  {
+    path: '/auth/callback',
+    name: 'AuthCallback',
+    component: () => import('../components/AuthCallback.vue'),
+    meta: { public: true }
+  },
   { path: '/', component: AppLayout, meta: { requiresAuth: true },
     children: [
       { path: '', name: 'Home',
@@ -27,46 +33,40 @@ const router = createRouter({
   routes
 })
 
-const AUTH_KEY = 'isAuthenticated'
-let isAuthenticated = sessionStorage.getItem(AUTH_KEY) === 'true'
+const AUTH_KEY = 'yandex_token'
+let isAuthenticated = !!localStorage.getItem(AUTH_KEY)
 
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  
-  // Если маршрут требует авторизации и пользователь не авторизован
+  const isPublic = to.matched.some(record => record.meta.public)
+
+  // Если маршрут требует авторизации и токена нет
   if (requiresAuth && !isAuthenticated) {
-    console.log('Требуется авторизация, редирект на /login')
     next('/login')
   } 
-  // Если пользователь на странице логина и уже авторизован
-  else if (to.path === '/login' && isAuthenticated) {
-    console.log('Уже авторизован, редирект на главную')
+  // Если публичный маршрут (логин) и уже авторизован
+  else if (isPublic && isAuthenticated && to.path === '/login') {
     next('/')
   }
-  // Во всех остальных случаях разрешаем
+  // Во всех остальных случаях
   else {
     next()
   }
 })
 
-export function login(username: string, password: string): boolean {
-  console.log(`Попытка входа: ${username}`)
-  
-  if (username === 'admin' && password === '123') {
-    isAuthenticated = true
-    sessionStorage.setItem(AUTH_KEY, 'true')
-    console.log('Успешный вход, состояние сохранено')
-    return true
-  }
-  
-  console.log('Неверные данные')
-  return false
+// Функции для работы с токеном
+export function setAuthToken(token: string): void {
+  localStorage.setItem(AUTH_KEY, token)
+  isAuthenticated = true
 }
 
-export function logout(): void {
+export function getAuthToken(): string | null {
+  return localStorage.getItem(AUTH_KEY)
+}
+
+export function removeAuthToken(): void {
+  localStorage.removeItem(AUTH_KEY)
   isAuthenticated = false
-  sessionStorage.removeItem(AUTH_KEY)
-  console.log('Выход, состояние очищено')
 }
 
 export function isLoggedIn(): boolean {

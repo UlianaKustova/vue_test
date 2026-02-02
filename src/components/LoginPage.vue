@@ -2,72 +2,50 @@
   <v-container fluid class="login-page fill-height">
     <v-row align="center" justify="center" class="fill-height">
       <v-col cols="12" md="8" lg="6" xl="4">
-        <!-- Основная карточка -->
+
         <v-card class="login-card" elevation="12" rounded="xl">
           <v-card-title class="text-center py-8">
-            <div class="text-h4 font-weight-bold primary--text">Добро пожаловать!</div>
+            <div class="text-h4 font-weight-bold primary--text">Вход в систему</div>
             <div class="text-subtitle-1 text-medium-emphasis mt-2">
-              Войдите в свою учетную запись
+              Авторизуйтесь через Яндекс
             </div>
           </v-card-title>
 
           <v-card-text class="pa-6">
-            <!-- Форма логина -->
-            <v-form @submit.prevent="handleLogin" ref="loginForm">
-              <!-- Поле логина -->
-              <v-text-field
-                v-model="username"
-                label="Имя пользователя"
-                prepend-inner-icon="mdi-account"
-                variant="outlined"
-                color="primary"
-                :rules="[v => !!v || 'Введите имя пользователя']"
-                required
-                class="mb-4"
-              />
 
-              <!-- Поле пароля с глазком -->
-              <v-text-field
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                label="Пароль"
-                prepend-inner-icon="mdi-lock"
-                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showPassword = !showPassword"
-                variant="outlined"
-                color="primary"
-                :rules="[v => !!v || 'Введите пароль']"
-                required
-                class="mb-2"
-              />
+            <v-btn
+              color="rgb(190, 204, 250)"
+              size="large"
+              block
+              :loading="loading"
+              @click="handleYandexLogin"
+              class="mb-4 yandex-btn"
+              elevation="4"
+            >
+              <template v-slot:prepend>
+                <v-icon size="24" class="mr-2">mdi-yandex</v-icon>
+              </template>
+              Войти через Яндекс
+            </v-btn>
 
-                
-              <!--<div class="d-flex align-center justify-space-between mb-6">
-                <a href="#" class="text-caption text-primary text-decoration-none">
-                  Забыли пароль?
-                </a>
-              </div>-->
+            <!-- Сообщение об ошибке -->
+            <v-alert
+              v-if="errorMessage"
+              type="error"
+              variant="tonal"
+              class="mt-4"
+              dense
+            >
+              {{ errorMessage }}
+            </v-alert>
 
-              <!-- Кнопка входа -->
-              <v-btn
-                type="submit"
-                color="rgb(190, 204, 250)"
-                size="large"
-                block
-                :loading="loading"
-                class="mb-4"
-                elevation="4"
-              >
-                Вход
-              </v-btn>
-            </v-form>
           </v-card-text>
 
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- Декоративные элементы -->
+
     <div class="decoration-circle circle-1"></div>
     <div class="decoration-circle circle-2"></div>
     <div class="decoration-circle circle-3"></div>
@@ -80,38 +58,123 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { login } from '../router' // Импортируем функцию login из роутера
 
 const router = useRouter()
 
-const username = ref('')
-const password = ref('')
-const showPassword = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
-const handleLogin = async () => {
-  if (!username.value.trim() || !password.value.trim()) {
-    errorMessage.value = 'Заполните все поля'
-    return
-  }
+// OAuth Яндекс параметры
+const YANDEX_OAUTH_URL = 'https://oauth.yandex.ru/authorize'
+const CLIENT_ID = import.meta.env.VITE_YANDEX_CLIENT_ID
+const REDIRECT_URI = import.meta.env.VITE_YANDEX_REDIRECT_URI
 
+// Проверяем, пришел ли пользователь с callback после авторизации
+onMounted(() => {
+  // Проверяем URL параметры на наличие кода авторизации
+  const urlParams = new URLSearchParams(window.location.search)
+  const code = urlParams.get('code')
+  const error = urlParams.get('error')
+  
+  if (error) {
+    errorMessage.value = `Ошибка авторизации: ${error}`
+    if (error === 'access_denied') {
+      errorMessage.value = 'Вы отменили авторизацию'
+    }
+  }
+  
+  if (code) {
+    // Если есть code, значит мы на callback странице
+    exchangeCodeForToken(code)
+  }
+})
+
+const handleYandexLogin = () => {
   loading.value = true
   errorMessage.value = ''
-
-  // Вызов функции логина из роутера
-  const isSuccess = login(username.value, password.value)
-
-  if (isSuccess) {
-    // Успешный вход - редирект на главную
-    router.push('/')
-  } else {
-    errorMessage.value = 'Неверный логин или пароль'
+  
+  // Формируем URL для OAuth авторизации
+  const oauthUrl = new URL(YANDEX_OAUTH_URL)
+  const params = {
+    response_type: 'code',
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    force_confirm: 'yes', // Всегда запрашивать подтверждение
   }
+  
+  Object.entries(params).forEach(([key, value]) => {
+    oauthUrl.searchParams.append(key, value)
+  })
+  
+  // Редирект на Яндекс OAuth
+  window.location.href = oauthUrl.toString()
+}
 
-  loading.value = false
+// Обмен кода авторизации на токен
+const exchangeCodeForToken = async (code: string) => {
+  loading.value = true
+  
+  try {
+    const response = await fetch('/api/auth/yandex/callback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        code: code,
+        redirect_uri: REDIRECT_URI,
+      })
+    })
+    
+    if (!response.ok) {
+      throw new Error('Ошибка при получении токена')
+    }
+    
+    const data = await response.json()
+    
+    // Сохраняем токен (например, в localStorage или cookie)
+    if (data.access_token) {
+      localStorage.setItem('yandex_access_token', data.access_token)
+      localStorage.setItem('yandex_refresh_token', data.refresh_token || '')
+      
+      // Получаем информацию о пользователе
+      const userInfo = await fetchUserInfo(data.access_token)
+      
+      // Сохраняем информацию о пользователе
+      localStorage.setItem('user_info', JSON.stringify(userInfo))
+      
+      // Перенаправляем на главную страницу
+      router.push('/')
+    }
+    
+  } catch (error) {
+    console.error('Ошибка при обмене кода на токен:', error)
+    errorMessage.value = 'Ошибка авторизации. Попробуйте еще раз.'
+  } finally {
+    loading.value = false
+  }
+}
+
+// Получение информации о пользователе
+const fetchUserInfo = async (accessToken: string) => {
+  try {
+    const response = await fetch('https://login.yandex.ru/info', {
+      headers: {
+        'Authorization': `OAuth ${accessToken}`
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error('Ошибка при получении информации о пользователе')
+    }
+    
+    return await response.json()
+  } catch (error) {
+    console.error('Ошибка при получении информации о пользователе:', error)
+    return null
+  }
 }
 </script>
 
@@ -130,6 +193,16 @@ const handleLogin = async () => {
   animation: slideUp 0.6s ease-out;
   position: relative;
   z-index: 10;
+}
+
+.yandex-btn {
+  color: white !important;
+  height: 56px;
+  transition: transform 0.3s ease;
+}
+
+.yandex-btn:hover {
+  transform: translateY(-2px);
 }
 
 @keyframes slideUp {
@@ -234,32 +307,6 @@ const handleLogin = async () => {
   75% {
     transform: translate(-20px, 20px) rotate(270deg);
   }
-}
-
-/* Анимация для иконок */
-.v-btn--icon:hover {
-  transform: scale(1.1);
-  transition: transform 0.3s ease;
-}
-
-/* Эффект при наведении на инпуты */
-:deep(.v-field--focused) {
-  border-color: rgb(190, 204, 250) !important;
-}
-
-.v-btn--primary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s;
-}
-
-.v-btn--primary:hover::before {
-  left: 100%;
 }
 
 /* Адаптивность */

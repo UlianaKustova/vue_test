@@ -80,7 +80,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api'
-import { logout } from '../router'
+// import { logout } from '../router'
 
 const router = useRouter()
 const drawer = ref(true)
@@ -128,10 +128,10 @@ function navigateTo(route: string) {
   router.push(route)
 }
 
-function handleLogout() {
-  logout()
-  router.push('/login')
-}
+// function handleLogout() {
+//   logout()
+//   router.push('/login')
+// }
 </script>
 
 
