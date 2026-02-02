@@ -1,11 +1,12 @@
 <!-- Корневой VContainer VApp для меню VNavigation у него же есть хедер встроенные и в подвал VFooter суем -->
 
 <template>
-    <v-app>
+    <v-app style="background: linear-gradient(135deg, #ffffff 0%, rgb(190, 204, 250) 100%); min-height: 100vh;">
         <v-navigation-drawer 
         v-model="drawer"
         :rail="rail" 
-        permanent@click="rail = false">
+        permanent@click="rail = false"
+        style="background: rgba(255, 255, 255, 0);">
          <v-list>
         <v-list-item
           prepend-avatar="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ1Nrd655YtoWXW-IUp-GL1wAoLU7YLp4hBSA&s"
@@ -29,7 +30,7 @@
     </v-navigation-drawer>
 
     <!-- шапка -->
-    <v-app-bar flat>
+    <v-app-bar flat style="background: rgba(255, 255, 255, 0.1);">
       <v-app-bar-nav-icon @click="rail = !rail"></v-app-bar-nav-icon>
       <v-app-bar-title>Мой сайт</v-app-bar-title>
       <v-spacer></v-spacer>
@@ -51,7 +52,7 @@
       </v-container>
     </v-main>
 
-    <v-footer app border>
+    <v-footer app border style="background: rgba(255, 255, 255, 0);">
       <v-row justify="center" no-gutters>
         <v-col class="text-center" cols="12">
           <strong>Сайт {{ new Date().getFullYear() }}</strong>
@@ -117,6 +118,10 @@ function navigateTo(route: string) {
 
 
 <style scoped>
+.main-app {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e6ecff 100%);
+  min-height: 100vh;
+}
 
 /* Иконки в шапке */
 .v-btn.v-btn--icon {
