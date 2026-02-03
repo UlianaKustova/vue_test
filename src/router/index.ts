@@ -5,7 +5,7 @@ const routes = [
   {
     path: '/login', name: 'Login',
     component: () => import('../components/LoginPage.vue'),
-    meta: { requiresAuth: false }
+    meta: { public: true }
   },
   { path: '/', component: AppLayout, meta: { requiresAuth: true },
     children: [
@@ -28,30 +28,35 @@ const router = createRouter({
 })
 
 const AUTH_KEY = 'yandex_token'
-let isAuthenticated = !!localStorage.getItem(AUTH_KEY)
 
+// для проверки авторизации
 router.beforeEach((to, from, next) => {
+  // Получаем метаданные маршрута
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isPublic = to.matched.some(record => record.meta.public)
-
-  // Если маршрут требует авторизации и токена нет
-  if (requiresAuth && !isAuthenticated) {
+  
+  // ВСЕГДА проверяем актуальное состояние localStorage
+  const hasToken = !!localStorage.getItem(AUTH_KEY)
+  
+  // Если маршрут требует авторизации, а токена нет
+  if (requiresAuth && !hasToken) {
     next('/login')
-  } 
-  // Если публичный маршрут (логин) и уже авторизован
-  else if (isPublic && isAuthenticated && to.path === '/login') {
+    return
+  }
+  
+  // Если пытаемся зайти на логин, уже будучи авторизованным
+  if (isPublic && hasToken && to.path === '/login') {
     next('/')
+    return
   }
-  // Во всех остальных случаях
-  else {
-    next()
-  }
+  
+  // Все остальные случаи
+  next()
 })
 
 // Функции для работы с токеном
 export function setAuthToken(token: string): void {
   localStorage.setItem(AUTH_KEY, token)
-  isAuthenticated = true
 }
 
 export function getAuthToken(): string | null {
@@ -60,11 +65,11 @@ export function getAuthToken(): string | null {
 
 export function removeAuthToken(): void {
   localStorage.removeItem(AUTH_KEY)
-  isAuthenticated = false
 }
 
+// Функция всегда проверяет актуальное состояние
 export function isLoggedIn(): boolean {
-  return isAuthenticated
+  return !!localStorage.getItem(AUTH_KEY)
 }
 
 export default router

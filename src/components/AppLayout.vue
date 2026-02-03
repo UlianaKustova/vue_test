@@ -81,6 +81,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api'
 import { removeAuthToken  } from '../router'
+import { getMyselfInfo, getUserInfo } from '../api'
 
 const router = useRouter()
 const drawer = ref(true)
@@ -93,7 +94,8 @@ const user = ref({
 const loading = ref(false)
 
 onMounted(async () => {
-  await fetchUserData()
+  // await fetchUserData()
+  fetchUserData()
 })
 
 async function fetchUserData() {
@@ -118,6 +120,22 @@ async function fetchUserData() {
   }
 }
 
+// async function fetchUserDataFromTracker() {
+//   loading.value = true
+//   try {
+//     const userData = await getMyselfInfo()
+//     user.value = {
+//       fullName: `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.display,
+//       email: userData.email || 'Нет почты',
+//       avatar: ''
+//     }
+//   } catch (error) {
+//     console.error('Ошибка Tracker API:', error)
+//   } finally {
+//     loading.value = false
+//   }
+// }
+
 const menuItems = [
   { title: 'Главная', icon: 'mdi-home', value: 'home', route: '/' },
   { title: 'Проекты', icon: 'mdi-view-dashboard', value: 'Проекты', route: '/projects' },
@@ -136,6 +154,7 @@ const handleLogout = () => {
   localStorage.removeItem('yandex_refresh_token')
   localStorage.removeItem('user_info')
   localStorage.removeItem('yandex_client_secret')
+  localStorage.removeItem('yandex_client_id')
   
   // 3. Перенаправляем на страницу логина
   router.push('/login')

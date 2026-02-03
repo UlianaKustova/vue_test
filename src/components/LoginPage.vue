@@ -11,6 +11,16 @@
           </v-card-title>
 
           <v-card-text class="pa-6">
+
+            <v-text-field
+              v-model="clientId"
+              label="Client ID"
+              placeholder="Введите client_id вашего приложения перед авторизацией через Яндекс"
+              variant="outlined"
+              :rules="[v => !!v || 'Введите client_id']"
+              required
+              class="mb-4"
+            />
             <!-- Кнопка для открытия Яндекс OAuth -->
             <v-btn
               color="#fc3f1d"
@@ -82,24 +92,45 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { setAuthToken } from '../router'
 
 const router = useRouter()
 const loading = ref(false)
 const errorMessage = ref('')
+const clientId = ref('')
 const verificationCode = ref('')
 const clientSecret = ref('')
 const showSecret = ref(false)
 
-const CLIENT_ID = import.meta.env.VITE_YANDEX_CLIENT_ID
+onMounted(() => {
+  // При загрузке проверяем, есть ли сохраненный client_id
+  const savedClientId = localStorage.getItem('yandex_client_id')
+  if (savedClientId) {
+    clientId.value = savedClientId
+  } else {
+    // Если нет сохраненного, используем значение из .env
+    const envClientId = import.meta.env.VITE_YANDEX_CLIENT_ID
+    if (envClientId) {
+      clientId.value = envClientId
+    }
+  }
+})
 
 const openYandexAuth = () => {
+  if (!clientId.value) {
+    errorMessage.value = 'Введите Client ID'
+    return
+  }
+
+  // Сохраняем client_id в localStorage
+  localStorage.setItem('yandex_client_id', clientId.value)
+
   const oauthUrl = new URL('https://oauth.yandex.ru/authorize')
   const params = {
     response_type: 'code',
-    client_id: CLIENT_ID,
+    client_id: clientId.value,
   }
   
   Object.entries(params).forEach(([key, value]) => {
@@ -111,7 +142,7 @@ const openYandexAuth = () => {
 }
 
 const handleCodeSubmit = async () => {
-  if (!verificationCode.value || !clientSecret.value) {
+  if (!clientId.value || !verificationCode.value || !clientSecret.value) {
     errorMessage.value = 'Заполните все поля'
     return
   }
@@ -129,7 +160,7 @@ const handleCodeSubmit = async () => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: verificationCode.value,
-        client_id: CLIENT_ID,
+        client_id: clientId.value,
         client_secret: clientSecret.value
       })
     })
@@ -151,6 +182,9 @@ const handleCodeSubmit = async () => {
     if (data.refresh_token) {
       localStorage.setItem('yandex_refresh_token', data.refresh_token)
     }
+
+    // Сохраняем client_secret в localStorage (по желанию)
+    localStorage.setItem('yandex_client_secret', clientSecret.value)
 
     // Получаем информацию о пользователе
     try {

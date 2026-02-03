@@ -28,6 +28,16 @@ export default defineConfig({
           })
         }
       },
+      '/yandex-id': {
+        target: 'https://login.yandex.ru',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/yandex-id/, ''),
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log(`[YANDEX ID API] ${req.url} -> ${proxyReq.path}`)
+          })
+        }
+      }
     }
   }
 })
