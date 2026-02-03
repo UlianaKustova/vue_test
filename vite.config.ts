@@ -27,7 +27,7 @@ export default defineConfig({
             console.log(`[VITE PROXY] ${req.url} -> ${proxyReq.path}`)
           })
         }
-      }
+      },
     }
   }
 })

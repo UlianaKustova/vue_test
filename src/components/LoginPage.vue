@@ -2,7 +2,6 @@
   <v-container fluid class="login-page fill-height">
     <v-row align="center" justify="center" class="fill-height">
       <v-col cols="12" md="8" lg="6" xl="4">
-
         <v-card class="login-card" elevation="12" rounded="xl">
           <v-card-title class="text-center py-8">
             <div class="text-h4 font-weight-bold primary--text">Вход в систему</div>
@@ -12,35 +11,60 @@
           </v-card-title>
 
           <v-card-text class="pa-6">
-
+            <!-- Кнопка для открытия Яндекс OAuth -->
             <v-btn
-              color="rgb(190, 204, 250)"
+              color="#fc3f1d"
               size="large"
               block
-              :loading="loading"
-              @click="handleYandexLogin"
+              @click="openYandexAuth"
               class="mb-4 yandex-btn"
               elevation="4"
             >
-              <template v-slot:prepend>
-                <v-icon size="24" class="mr-2">mdi-yandex</v-icon>
-              </template>
-              Войти через Яндекс
+              <v-icon start>mdi-yandex</v-icon>
+              Открыть Яндекс для авторизации
             </v-btn>
 
+            <!-- Форма для ввода кода и секрета -->
+            <v-form @submit.prevent="handleCodeSubmit">
+              <v-text-field
+                v-model="verificationCode"
+                label="Код подтверждения из Яндекс"
+                placeholder="Вставьте код с https://oauth.yandex.ru/verification_code"
+                variant="outlined"
+                :rules="[v => !!v || 'Введите код']"
+                required
+                class="mb-4"
+              />
+
+              <v-text-field
+                v-model="clientSecret"
+                label="Client Secret"
+                :type="showSecret ? 'text' : 'password'"
+                placeholder="Введите client_secret вашего приложения"
+                variant="outlined"
+                :rules="[v => !!v || 'Введите client_secret']"
+                required
+                class="mb-4"
+                :append-inner-icon="showSecret ? 'mdi-eye-off' : 'mdi-eye'"
+                @click:append-inner="showSecret = !showSecret"
+              />
+
+              <v-btn
+                type="submit"
+                color="rgb(190, 204, 250)"
+                size="large"
+                block
+                :loading="loading"
+              >
+                Получить токен
+              </v-btn>
+            </v-form>
+
             <!-- Сообщение об ошибке -->
-            <v-alert
-              v-if="errorMessage"
-              type="error"
-              variant="tonal"
-              class="mt-4"
-              dense
-            >
+            <v-alert v-if="errorMessage" type="error" class="mt-4" dense>
               {{ errorMessage }}
             </v-alert>
-
           </v-card-text>
-
         </v-card>
       </v-col>
     </v-row>
@@ -58,127 +82,117 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { setAuthToken } from '../router'
 
 const router = useRouter()
-
 const loading = ref(false)
 const errorMessage = ref('')
+const verificationCode = ref('')
+const clientSecret = ref('')
+const showSecret = ref(false)
 
-// OAuth Яндекс параметры
-const YANDEX_OAUTH_URL = 'https://oauth.yandex.ru/authorize'
 const CLIENT_ID = import.meta.env.VITE_YANDEX_CLIENT_ID
-const REDIRECT_URI = import.meta.env.VITE_YANDEX_REDIRECT_URI
 
-// Проверяем, пришел ли пользователь с callback после авторизации
-onMounted(() => {
-  // Проверяем URL параметры на наличие кода авторизации
-  const urlParams = new URLSearchParams(window.location.search)
-  const code = urlParams.get('code')
-  const error = urlParams.get('error')
-  
-  if (error) {
-    errorMessage.value = `Ошибка авторизации: ${error}`
-    if (error === 'access_denied') {
-      errorMessage.value = 'Вы отменили авторизацию'
-    }
-  }
-  
-  if (code) {
-    // Если есть code, значит мы на callback странице
-    exchangeCodeForToken(code)
-  }
-})
-
-const handleYandexLogin = () => {
-  loading.value = true
-  errorMessage.value = ''
-  
-  // Формируем URL для OAuth авторизации
-  const oauthUrl = new URL(YANDEX_OAUTH_URL)
+const openYandexAuth = () => {
+  const oauthUrl = new URL('https://oauth.yandex.ru/authorize')
   const params = {
     response_type: 'code',
     client_id: CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    force_confirm: 'yes', // Всегда запрашивать подтверждение
   }
   
   Object.entries(params).forEach(([key, value]) => {
     oauthUrl.searchParams.append(key, value)
   })
   
-  // Редирект на Яндекс OAuth
-  window.location.href = oauthUrl.toString()
+  // Открываем в новой вкладке
+  window.open(oauthUrl.toString(), '_blank')
 }
 
-// Обмен кода авторизации на токен
-const exchangeCodeForToken = async (code: string) => {
+const handleCodeSubmit = async () => {
+  if (!verificationCode.value || !clientSecret.value) {
+    errorMessage.value = 'Заполните все поля'
+    return
+  }
+
   loading.value = true
-  
+  errorMessage.value = ''
+
   try {
-    const response = await fetch('/api/auth/yandex/callback', {
+    // Прямой запрос к Яндекс API
+    const response = await fetch('https://oauth.yandex.ru/token', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: JSON.stringify({
-        code: code,
-        redirect_uri: REDIRECT_URI,
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: verificationCode.value,
+        client_id: CLIENT_ID,
+        client_secret: clientSecret.value
       })
     })
-    
-    if (!response.ok) {
-      throw new Error('Ошибка при получении токена')
-    }
-    
+
     const data = await response.json()
-    
-    // Сохраняем токен (например, в localStorage или cookie)
-    if (data.access_token) {
-      localStorage.setItem('yandex_access_token', data.access_token)
-      localStorage.setItem('yandex_refresh_token', data.refresh_token || '')
-      
-      // Получаем информацию о пользователе
-      const userInfo = await fetchUserInfo(data.access_token)
-      
-      // Сохраняем информацию о пользователе
-      localStorage.setItem('user_info', JSON.stringify(userInfo))
-      
-      // Перенаправляем на главную страницу
-      router.push('/')
+
+    if (data.error) {
+      throw new Error(data.error_description || data.error)
     }
+
+    if (!data.access_token) {
+      throw new Error('Токен не получен')
+    }
+
+    // Сохраняем токен
+    setAuthToken(data.access_token)
     
+    // Сохраняем refresh token если есть
+    if (data.refresh_token) {
+      localStorage.setItem('yandex_refresh_token', data.refresh_token)
+    }
+
+    // Получаем информацию о пользователе
+    try {
+      const userResponse = await fetch('https://login.yandex.ru/info?format=json', {
+        headers: {
+          'Authorization': `OAuth ${data.access_token}`
+        }
+      })
+      
+      if (userResponse.ok) {
+        const userInfo = await userResponse.json()
+        localStorage.setItem('user_info', JSON.stringify(userInfo))
+      }
+    } catch (userError) {
+      console.warn('Не удалось получить информацию о пользователе:', userError)
+    }
+
+    // Переходим на главную
+    router.push('/')
+
   } catch (error) {
-    console.error('Ошибка при обмене кода на токен:', error)
-    errorMessage.value = 'Ошибка авторизации. Попробуйте еще раз.'
+    console.error('Ошибка:', error)
+    errorMessage.value = error instanceof Error 
+      ? `Ошибка: ${error.message}` 
+      : 'Неизвестная ошибка. Проверьте:<br>1. Правильность кода<br>2. Правильность client_secret<br>3. Не истекло ли время действия кода'
   } finally {
     loading.value = false
-  }
-}
-
-// Получение информации о пользователе
-const fetchUserInfo = async (accessToken: string) => {
-  try {
-    const response = await fetch('https://login.yandex.ru/info', {
-      headers: {
-        'Authorization': `OAuth ${accessToken}`
-      }
-    })
-    
-    if (!response.ok) {
-      throw new Error('Ошибка при получении информации о пользователе')
-    }
-    
-    return await response.json()
-  } catch (error) {
-    console.error('Ошибка при получении информации о пользователе:', error)
-    return null
   }
 }
 </script>
 
 <style scoped>
+.yandex-btn {
+  background: linear-gradient(135deg, #fc3f1d 0%, #ff6b4a 100%);
+  color: white !important;
+}
+
+.yandex-btn:hover {
+  transform: translateY(-2px);
+  transition: transform 0.3s ease;
+}
+
 .login-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #eeeeee 0%, rgb(190, 204, 250) 100%);

@@ -80,7 +80,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api'
-// import { logout } from '../router'
+import { removeAuthToken  } from '../router'
 
 const router = useRouter()
 const drawer = ref(true)
@@ -128,10 +128,22 @@ function navigateTo(route: string) {
   router.push(route)
 }
 
-// function handleLogout() {
-//   logout()
-//   router.push('/login')
-// }
+const handleLogout = () => {
+  // 1. Удаляем токен авторизации
+  removeAuthToken()
+  
+  // 2. Удаляем другие данные Яндекс
+  localStorage.removeItem('yandex_refresh_token')
+  localStorage.removeItem('user_info')
+  localStorage.removeItem('yandex_client_secret')
+  
+  // 3. Перенаправляем на страницу логина
+  router.push('/login')
+  
+  // 4. Опционально: перезагружаем страницу чтобы сбросить состояние
+  window.location.reload()
+}
+
 </script>
 
 

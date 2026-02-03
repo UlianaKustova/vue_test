@@ -7,12 +7,6 @@ const routes = [
     component: () => import('../components/LoginPage.vue'),
     meta: { requiresAuth: false }
   },
-  {
-    path: '/auth/callback',
-    name: 'AuthCallback',
-    component: () => import('../components/AuthCallback.vue'),
-    meta: { public: true }
-  },
   { path: '/', component: AppLayout, meta: { requiresAuth: true },
     children: [
       { path: '', name: 'Home',
