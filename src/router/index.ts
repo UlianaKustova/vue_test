@@ -15,6 +15,11 @@ const routes = [
       { path: '/projects', name: 'Проекты',
         component: () => import('../components/ProjectsPage.vue')
       },
+      {
+        path: '/projects/:id',
+        name: 'ProjectDetails',
+        component: () => import('../components/ProjectDetailsPage.vue')
+      },
       { path: '/hello', name: 'HelloWorld',
         component: () => import('../components/HelloWorld.vue')
       }
@@ -35,26 +40,26 @@ router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isPublic = to.matched.some(record => record.meta.public)
   
-  // ВСЕГДА проверяем актуальное состояние localStorage
+  //проверяем актуальное состояние localStorage
   const hasToken = !!localStorage.getItem(AUTH_KEY)
   
-  // Если маршрут требует авторизации, а токена нет
+  // маршрут требует авторизации, а токена нет
   if (requiresAuth && !hasToken) {
     next('/login')
     return
   }
   
-  // Если пытаемся зайти на логин, уже будучи авторизованным
+  // если пытаемся зайти на логин, уже будучи авторизованным
   if (isPublic && hasToken && to.path === '/login') {
     next('/')
     return
   }
   
-  // Все остальные случаи
+  //остальные случаи
   next()
 })
 
-// Функции для работы с токеном
+// для работы с токеном
 export function setAuthToken(token: string): void {
   localStorage.setItem(AUTH_KEY, token)
 }
@@ -67,7 +72,7 @@ export function removeAuthToken(): void {
   localStorage.removeItem(AUTH_KEY)
 }
 
-// Функция всегда проверяет актуальное состояние
+// всегда проверяет актуальное состояние
 export function isLoggedIn(): boolean {
   return !!localStorage.getItem(AUTH_KEY)
 }

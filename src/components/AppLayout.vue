@@ -47,15 +47,15 @@
       <v-app-bar-nav-icon @click="rail = !rail"></v-app-bar-nav-icon>
       <v-app-bar-title>Мой сайт</v-app-bar-title>
       <v-spacer></v-spacer>
-      <v-btn icon>
+      <!-- <v-btn icon>
         <v-icon>mdi-bell </v-icon>
-      </v-btn>
+      </v-btn> -->
       <v-btn icon>
         <v-icon>mdi-cog</v-icon>
       </v-btn>
-      <v-btn icon>
+      <!-- <v-btn icon>
         <v-icon>mdi-account</v-icon>
-      </v-btn>
+      </v-btn> -->
     </v-app-bar>
 
     <!-- тело -->

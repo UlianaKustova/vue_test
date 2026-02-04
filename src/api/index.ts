@@ -12,19 +12,18 @@ const api: AxiosInstance = axios.create({
   }
 })
 
-// Интерцептор для Tracker API
+
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = getAuthToken()
     if (token && config.headers) {
       config.headers.Authorization = `OAuth ${token}`
     }
-    
     // Добавляем X-Cloud-Org-Id если есть
-    const orgId = localStorage.getItem('org_id')
-    if (orgId && config.headers) {
-      config.headers['X-Cloud-Org-Id'] = orgId
-    }
+    // const orgId = localStorage.getItem('org_id')
+    // if (orgId && config.headers) {
+    //   config.headers['X-Cloud-Org-Id'] = orgId
+    // }
     
     return config
   },
@@ -34,7 +33,7 @@ api.interceptors.request.use(
 )
 
 const yandexIdApi: AxiosInstance = axios.create({
-  baseURL: '/yandex-id', // Прокси на Яндекс ID API
+  baseURL: '/yandex-id', // Прокси
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -42,7 +41,7 @@ const yandexIdApi: AxiosInstance = axios.create({
   }
 })
 
-// Интерцептор для Яндекс ID API
+
 yandexIdApi.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = getAuthToken()
@@ -69,7 +68,6 @@ const setupErrorInterceptor = (apiInstance: AxiosInstance) => {
   )
 }
 
-// Настраиваем интерцепторы ошибок для обоих API
 setupErrorInterceptor(api)
 setupErrorInterceptor(yandexIdApi)
 

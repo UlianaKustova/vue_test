@@ -21,7 +21,6 @@
               required
               class="mb-4"
             />
-            <!-- Кнопка для открытия Яндекс OAuth -->
             <v-btn
               color="#fc3f1d"
               size="large"
@@ -105,12 +104,12 @@ const clientSecret = ref('')
 const showSecret = ref(false)
 
 onMounted(() => {
-  // При загрузке проверяем, есть ли сохраненный client_id
+  // проверяем есть ли сохраненный clientid
   const savedClientId = localStorage.getItem('yandex_client_id')
   if (savedClientId) {
     clientId.value = savedClientId
   } else {
-    // Если нет сохраненного, используем значение из .env
+    // если нет используем значение из .env
     const envClientId = import.meta.env.VITE_YANDEX_CLIENT_ID
     if (envClientId) {
       clientId.value = envClientId
@@ -124,7 +123,7 @@ const openYandexAuth = () => {
     return
   }
 
-  // Сохраняем client_id в localStorage
+  // client_id в localStorage
   localStorage.setItem('yandex_client_id', clientId.value)
 
   const oauthUrl = new URL('https://oauth.yandex.ru/authorize')
@@ -136,8 +135,7 @@ const openYandexAuth = () => {
   Object.entries(params).forEach(([key, value]) => {
     oauthUrl.searchParams.append(key, value)
   })
-  
-  // Открываем в новой вкладке
+
   window.open(oauthUrl.toString(), '_blank')
 }
 
@@ -151,7 +149,6 @@ const handleCodeSubmit = async () => {
   errorMessage.value = ''
 
   try {
-    // Прямой запрос к Яндекс API
     const response = await fetch('https://oauth.yandex.ru/token', {
       method: 'POST',
       headers: {
@@ -175,18 +172,14 @@ const handleCodeSubmit = async () => {
       throw new Error('Токен не получен')
     }
 
-    // Сохраняем токен
     setAuthToken(data.access_token)
     
-    // Сохраняем refresh token если есть
     if (data.refresh_token) {
       localStorage.setItem('yandex_refresh_token', data.refresh_token)
     }
 
-    // Сохраняем client_secret в localStorage (по желанию)
     localStorage.setItem('yandex_client_secret', clientSecret.value)
 
-    // Получаем информацию о пользователе
     try {
       const userResponse = await fetch('https://login.yandex.ru/info?format=json', {
         headers: {
@@ -202,7 +195,6 @@ const handleCodeSubmit = async () => {
       console.warn('Не удалось получить информацию о пользователе:', userError)
     }
 
-    // Переходим на главную
     router.push('/')
 
   } catch (error) {

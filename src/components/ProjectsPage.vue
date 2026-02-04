@@ -46,6 +46,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import api from '@/api'
+import { useRouter } from 'vue-router'
 
 interface Project {
   id: string
@@ -56,6 +57,7 @@ interface Project {
 const projects = ref<Project[]>([])
 const loading = ref(false)
 const error = ref('')
+const router = useRouter()
 
 onMounted(async () => {
   await fetchProjects()
@@ -85,8 +87,7 @@ async function fetchProjects() {
 }
 
 function selectProject(project: Project) {
-  console.log('Выбран проект:', project)
-  // открытие деталей проекта
+  router.push(`/projects/${project.id}`)
 }
 </script>
 
@@ -97,7 +98,7 @@ function selectProject(project: Project) {
 }
 
 .project-item:hover {
-  background-color: #f5f5f5;
+  background-color: aliceblue;
 }
 
 .pa-6 {
